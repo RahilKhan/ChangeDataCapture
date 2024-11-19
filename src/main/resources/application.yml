@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: carbon-emission
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/carbon_emission_db
+  kafka:
+    bootstrap-servers: localhost:29092
+
+server:
+  port: 19080
+
+logging:
+  file:
+    name: logs/carbon-emission.log
+  level:
+    root: INFO
+
+
+
