@@ -17,7 +17,7 @@ public class EmissionService {
         this.vehicleEmissionRepository = vehicleEmissionRepository;
     }
 
-    @Scheduled(fixedRate = 5000) // Generate a new emission every 5 seconds
+    // @Scheduled(fixedRate = 5000) // Generate a new emission every 5 seconds
     private void generateRandomEmissions() {
         VehicleEmission emission = VehicleEmission.generateRandomEmission();
         try {
@@ -27,4 +27,19 @@ public class EmissionService {
             logger.error("Error saving emission to MongoDB: {}", e.getMessage());
         }
     }
+
+    @Scheduled(fixedRate = 3000)
+    private void generateRandomEmissionsAndUpdate() {
+        VehicleEmission emission = VehicleEmission.generateRandomEmission();
+        try {
+            vehicleEmissionRepository.findByVehicleType(emission.getVehicleType());
+            Query query = new Query(Criteria.where("vehicleType").is(emission.getVehicleType()));
+            Update update = new Update().set("carbonEmission", emission.getCarbonEmission());
+            mongoTemplate.upsert(query, update, VehicleEmission.class);
+            logger.info("Updated Vehicle Emission: Type = {}, Emission = {}", emission.getVehicleType(), emission.getCarbonEmission());
+        } catch (Exception e) {
+            logger.error("Error saving emission to MongoDB: {}", e.getMessage());
+        }
+    }
+    
 }
