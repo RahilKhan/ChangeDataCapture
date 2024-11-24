@@ -5,7 +5,7 @@ services:
     image: debezium/connect:1.4
     container_name: debezium
     environment:
-      BOOTSTRAP_SERVERS: kafka:9092
+      BOOTSTRAP_SERVERS: kafka:9092  # Use 'kafka' instead of 'localhost'
       GROUP_ID: 1
       CONFIG_STORAGE_TOPIC: connect_configs
       OFFSET_STORAGE_TOPIC: connect_offsets
@@ -13,22 +13,34 @@ services:
       VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-    depends_on: [kafka]
+      DEBEZIUM_MONGODB_URI: "mongodb://mongo1:27017,mongo2:27018/?replicaSet=rs0"
+      DEBEZIUM_MONGODB_DB: "carbon_emission_db"
+    depends_on:
+      - kafka
+      - mongo-1
     ports:
-      - 8083:8083
+      - 8085:8085
+
 
   #KAFKA SERVICES CONFIGURATION
   schema-registry:
     container_name: schema-registry
-    #image: confluentinc/cp-schema-registry:5.5.3
     image: confluentinc/cp-schema-registry:7.4.4
     environment:
       - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=zookeeper:2181
       - SCHEMA_REGISTRY_HOST_NAME=schema-registry
       - SCHEMA_REGISTRY_LISTENERS=http://schema-registry:8081,http://localhost:8081
+      #Enteries madeo fix scehema-registry connnection with kafka
+      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka:9092  # Point to Kafka
+      - SCHEMA_REGISTRY_LISTENER_HTTP_PORT=8081
+      - SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL=PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
     ports:
       - 8081:8081
-    depends_on: [zookeeper, kafka]
+    depends_on:
+      - zookeeper
+      - kafka
 
   zookeeper:
     image: quay.io/debezium/zookeeper
@@ -57,7 +69,7 @@ services:
 
   kafka_manager:
     container_name: kafka-mngr
-    image: kafkamanager/kafka-manager #hlebalbau/kafka-manager:stable
+    image: kafkamanager/kafka-manager
     restart: always
     ports:
       - "9010:9010"
@@ -76,14 +88,11 @@ services:
     ports:
       - "27017:27017"
     command: mongod --replSet rs0 --port 27017 --bind_ip_all
-    #    command: >
-    #      mongod --replSet rs0 --port 27017 --bind_ip_all
-    #      mongod --storageEngine wiredTiger --replSet localrepl --port 27017
-
+#    command: ["--replSet", "rs0"]
     depends_on:
       - mongo-2
-  #    command: >
-  #      mongod --replSet rs0 --port 27017 --bind_ip_all
+    volumes:
+      - ./mongo-data:/data/db
 
   #MONGODB-2
   mongo-2:
@@ -92,11 +101,6 @@ services:
     ports:
       - "27018:27018"
     command: mongod --replSet rs0 --port 27018 --bind_ip_all
-  #    command: >
-  #      mongod --replSet rs0 --port 27018 --bind_ip_all
-  #      mongod --storageEngine wiredTiger --replSet localrepl --port 27018
-
-
 
   #GRAFANA CONFIGURATION
   grafana:
