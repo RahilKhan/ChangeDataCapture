@@ -56,7 +56,7 @@ Greenhouse metrics - Change Data Capture(DEBEZIUM) DEMO
    ```
 6. Check Kafka topics:  
    ```bash
-        $> docker exec -it kafka-1 kafka-topics --list --zookeeper zookeeper:2181
+        $> docker exec -it kafka kafka-topics --bootstrap-server=localhost:9092 --list
    ```
    
 
