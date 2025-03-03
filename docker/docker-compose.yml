@@ -90,28 +90,6 @@ services:
     networks:
       - mongoCluster
 
-#  #MONGODB-1
-#  mongo-1:
-#    image: mongo:7.0.5
-#    container_name: mongo1
-#    ports:
-#      - "27019:27019"
-#    command: mongod --replSet rs0 --port 27019 --bind_ip_all
-#    depends_on:
-#      - mongo-2
-#    networks:
-#      - mongo-cluster
-#
-#  #MONGODB-2
-#  mongo-2:
-#    image: mongo:7.0.5
-#    container_name: mongo2
-#    ports:
-#      - "27018:27018"
-#    command: mongod --replSet rs0 --port 27018 --bind_ip_all
-#    networks:
-#      - mongo-cluster
-
   #GRAFANA CONFIGURATION
   grafana:
     image: grafana/grafana:latest  # Specify a compatible version
