@@ -24,24 +24,39 @@ Greenhouse metrics - Change Data Capture(DEBEZIUM) DEMO
     ```
    The application will be accessible at `http://localhost:8080`.
 
-3. Configure mongodb primary node
-
-   Mongo db is set in replica mode with 2 nodes mongo1 and mongo2.
-   
-   One node is required to be set as primary.
-   
-   Set mongo1 as primary.
-      ```bash
-       #login to container console
-       $docker exec -it mongo1 bash
+3. run docker-compose up
+   ```bash
+   $ docker-compose up
+   ```
+4. Configure mongodb primary node
+ 
+   4.1. Execute mongod.cfg file to set replica mode.
+   ```bash
+     $> mongod -f mongod.cfg
+   ```
+   4.2. Mongo db is set in replica mode with 2 nodes mongo1 and mongo2.
+        One node is required to be set as primary.
       
-       #login to mongo shell
-       $bash> mongosh
-       $bash> rs.initiate({_id: "rs0", members: [{ _id : 0, host: "mongo1:27017" },{ _id : 1, host: "mongo2:27018" }] })
-      
-       #check status         
-       $bash> rs.status()
-       ```
+         Set mongo1 as primary.
+   ```bash
+         $> docker exec -it mongo-1 mongosh --eval "rs.initiate({
+                  _id: 'rs0',
+                  members: [
+                    {_id: 0, host: \"mongo-1\"},
+                    {_id: 1, host: \"mongo-2\"}
+                  ]
+                })"
 
+         $> docker exec -it mongo-1 mongosh --eval "rs.status()"
+   ```           
 
+5. Connect to mongodb db via compass using following connection string:
+   ```bash
+        $> mongodb://localhost:27017/?directConnection=true
+   ```
+6. Check Kafka topics:  
+   ```bash
+        $> docker exec -it kafka-1 kafka-topics --list --zookeeper zookeeper:2181
+   ```
+   
 
